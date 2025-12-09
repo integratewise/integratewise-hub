@@ -168,12 +168,12 @@ export default function NotebookPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="bg-zinc-800">
+            <Badge variant="secondary" className="bg-zinc-800 text-zinc-300">
               {notebook.category}
             </Badge>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
                   <Plus className="h-4 w-4 mr-2" />
                   New Document
                 </Button>
