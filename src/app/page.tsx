@@ -68,6 +68,16 @@ const iconMap: Record<string, LucideIcon> = {
   BookOpen,
 };
 
+// Category color mapping
+const categoryColors: Record<string, string> = {
+  Business: "bg-[#0176d3] text-white",
+  Operations: "bg-[#8b5fd6] text-white",
+  Projects: "bg-[#28a745] text-white",
+  Products: "bg-[#1589ee] text-white",
+  Tech: "bg-[#ffc107] text-[#181818]",
+  General: "bg-[#5c5c5c] text-white",
+};
+
 export default function Home() {
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [stats, setStats] = useState<Stats>({ totalNotebooks: 0, totalDocs: 0, avgProgress: 0 });
@@ -115,33 +125,35 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#f4f7ff] to-[#faf8ff]">
       {/* Header */}
-      <header className="border-b border-zinc-800 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="border-b border-[#e5e7eb] bg-white px-6 py-4 shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-blue-500" />
-            <h1 className="text-xl font-semibold">IntegrateWise Hub</h1>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0176d3] to-[#8b5fd6] flex items-center justify-center">
+              <BookOpen className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-xl font-semibold text-[#181818]">IntegrateWise Hub</h1>
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700">
+              <Button className="bg-gradient-to-r from-[#0176d3] to-[#8b5fd6] hover:from-[#015ba8] hover:to-[#7248b8] text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 New Notebook
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-zinc-900 border-zinc-800">
+            <DialogContent className="bg-white border-[#e5e7eb]">
               <DialogHeader>
-                <DialogTitle>Create New Notebook</DialogTitle>
+                <DialogTitle className="text-[#181818]">Create New Notebook</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
                   placeholder="Notebook name"
                   value={newNotebookName}
                   onChange={(e) => setNewNotebookName(e.target.value)}
-                  className="bg-zinc-800 border-zinc-700"
+                  className="border-[#e5e7eb] focus:ring-[#0176d3]"
                 />
-                <Button onClick={createNotebook} className="w-full">
+                <Button onClick={createNotebook} className="w-full bg-[#0176d3] hover:bg-[#015ba8] text-white">
                   Create Notebook
                 </Button>
               </div>
@@ -150,52 +162,52 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="p-6">
+      <main className="p-6 max-w-7xl mx-auto">
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-[#e5e7eb] shadow-sm">
             <CardHeader className="pb-2">
-              <CardDescription>Total Notebooks</CardDescription>
-              <CardTitle className="text-3xl">{stats.totalNotebooks}</CardTitle>
+              <CardDescription className="text-[#5c5c5c]">Total Notebooks</CardDescription>
+              <CardTitle className="text-3xl text-[#0176d3]">{stats.totalNotebooks}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-[#e5e7eb] shadow-sm">
             <CardHeader className="pb-2">
-              <CardDescription>Total Documents</CardDescription>
-              <CardTitle className="text-3xl">{stats.totalDocs}</CardTitle>
+              <CardDescription className="text-[#5c5c5c]">Total Documents</CardDescription>
+              <CardTitle className="text-3xl text-[#8b5fd6]">{stats.totalDocs}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-[#e5e7eb] shadow-sm">
             <CardHeader className="pb-2">
-              <CardDescription>Overall Progress</CardDescription>
-              <CardTitle className="text-3xl">{stats.avgProgress}%</CardTitle>
+              <CardDescription className="text-[#5c5c5c]">Overall Progress</CardDescription>
+              <CardTitle className="text-3xl text-[#28a745]">{stats.avgProgress}%</CardTitle>
             </CardHeader>
             <CardContent>
-              <Progress value={stats.avgProgress} className="h-2" />
+              <Progress value={stats.avgProgress} className="h-2 bg-[#e5e7eb]" />
             </CardContent>
           </Card>
         </div>
 
         {/* Notebooks Grid */}
         <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-4">Notebooks</h2>
+          <h2 className="text-lg font-semibold text-[#181818] mb-4">Notebooks</h2>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <p className="text-zinc-400">Loading notebooks...</p>
+            <p className="text-[#5c5c5c]">Loading notebooks...</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* New Notebook Card */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Card className="bg-zinc-900/50 border-zinc-800 border-dashed hover:bg-zinc-900 transition-colors cursor-pointer">
+                <Card className="bg-white/50 border-[#e5e7eb] border-dashed hover:bg-white hover:shadow-md transition-all cursor-pointer">
                   <CardContent className="flex flex-col items-center justify-center h-40">
-                    <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mb-3">
-                      <Plus className="h-6 w-6 text-zinc-400" />
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0176d3]/20 to-[#8b5fd6]/20 flex items-center justify-center mb-3">
+                      <Plus className="h-6 w-6 text-[#0176d3]" />
                     </div>
-                    <p className="text-zinc-400">Create new notebook</p>
+                    <p className="text-[#5c5c5c]">Create new notebook</p>
                   </CardContent>
                 </Card>
               </DialogTrigger>
@@ -204,29 +216,30 @@ export default function Home() {
             {/* Notebook Cards */}
             {notebooks.map((notebook) => {
               const Icon = iconMap[notebook.icon] || BookOpen;
+              const badgeColor = categoryColors[notebook.category] || categoryColors.General;
               return (
                 <Link href={`/notebooks/${notebook.id}`} key={notebook.id}>
-                  <Card className="bg-zinc-900 border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer h-40">
+                  <Card className="bg-white border-[#e5e7eb] hover:shadow-lg hover:border-[#0176d3]/30 transition-all cursor-pointer h-40">
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
-                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                          <Icon className="h-5 w-5 text-amber-500" />
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0176d3]/20 to-[#8b5fd6]/20 flex items-center justify-center">
+                          <Icon className="h-5 w-5 text-[#0176d3]" />
                         </div>
-                        <Badge variant="secondary" className="bg-zinc-800 text-zinc-400 text-xs">
+                        <Badge className={`${badgeColor} text-xs`}>
                           {notebook.category}
                         </Badge>
                       </div>
-                      <CardTitle className="text-base mt-3">{notebook.name}</CardTitle>
+                      <CardTitle className="text-base mt-3 text-[#181818]">{notebook.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-between text-sm text-zinc-400">
+                      <div className="flex items-center justify-between text-sm text-[#5c5c5c]">
                         <span className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
                           {notebook.docs_count} docs
                         </span>
                         <span>{notebook.progress}%</span>
                       </div>
-                      <Progress value={notebook.progress} className="h-1 mt-2" />
+                      <Progress value={notebook.progress} className="h-1 mt-2 bg-[#e5e7eb]" />
                     </CardContent>
                   </Card>
                 </Link>
