@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
+import { SidebarNav } from "@/components/sidebar-nav";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -16,14 +16,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
-  ArrowLeft,
-  Plus,
-  FileText,
   BookOpen,
+  Plus,
+  Github,
+  Menu,
+  FileText,
   Trash2,
   Edit,
   Save,
+  ChevronRight,
 } from "lucide-react";
 
 interface Document {
@@ -46,20 +49,11 @@ interface Notebook {
   docs_count: number;
 }
 
-// Category color mapping
-const categoryColors: Record<string, string> = {
-  Business: "bg-[#0176d3] text-white",
-  Operations: "bg-[#8b5fd6] text-white",
-  Projects: "bg-[#28a745] text-white",
-  Products: "bg-[#1589ee] text-white",
-  Tech: "bg-[#ffc107] text-[#181818]",
-  General: "bg-[#5c5c5c] text-white",
-};
-
 export default function NotebookPage() {
   const params = useParams();
   const id = params.id as string;
 
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [notebook, setNotebook] = useState<Notebook | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,8 +64,21 @@ export default function NotebookPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
+    fetchAllNotebooks();
     fetchNotebook();
   }, [id]);
+
+  async function fetchAllNotebooks() {
+    try {
+      const res = await fetch("/api/notebooks");
+      if (res.ok) {
+        const data = await res.json();
+        setNotebooks(data.notebooks);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notebooks:", error);
+    }
+  }
 
   async function fetchNotebook() {
     try {
@@ -102,6 +109,7 @@ export default function NotebookPage() {
         setNewDocTitle("");
         setDialogOpen(false);
         fetchNotebook();
+        fetchAllNotebooks();
       }
     } catch (error) {
       console.error("Failed to create document:", error);
@@ -136,6 +144,7 @@ export default function NotebookPage() {
           setSelectedDoc(null);
         }
         fetchNotebook();
+        fetchAllNotebooks();
       }
     } catch (error) {
       console.error("Failed to delete document:", error);
@@ -144,189 +153,239 @@ export default function NotebookPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f4f7ff] to-[#faf8ff] flex items-center justify-center">
-        <p className="text-[#5c5c5c]">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   if (!notebook) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#f4f7ff] to-[#faf8ff] flex flex-col items-center justify-center gap-4">
-        <p className="text-[#5c5c5c]">Notebook not found</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Notebook not found</p>
         <Link href="/">
-          <Button className="bg-[#0176d3] hover:bg-[#015ba8] text-white">Go back home</Button>
+          <Button>Go back home</Button>
         </Link>
       </div>
     );
   }
 
-  const badgeColor = categoryColors[notebook.category] || categoryColors.General;
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f4f7ff] to-[#faf8ff]">
+    <div className="flex min-h-screen flex-col">
       {/* Header */}
-      <header className="border-b border-[#e5e7eb] bg-white px-6 py-4 shadow-sm">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="text-[#5c5c5c] hover:text-[#181818] hover:bg-[#f3f4f6]">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 hidden md:flex">
+            <Link href="/" className="mr-6 flex items-center space-x-2">
+              <BookOpen className="h-6 w-6" />
+              <span className="hidden font-bold sm:inline-block">IntegrateWise Hub</span>
             </Link>
-            <div>
-              <h1 className="text-xl font-semibold text-[#181818]">{notebook.name}</h1>
-              <p className="text-sm text-[#5c5c5c]">{notebook.description}</p>
-            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Badge className={`${badgeColor} text-xs`}>
-              {notebook.category}
-            </Badge>
+
+          {/* Mobile menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0">
+              <Link href="/" className="flex items-center space-x-2 mb-4">
+                <BookOpen className="h-6 w-6" />
+                <span className="font-bold">IntegrateWise Hub</span>
+              </Link>
+              <SidebarNav notebooks={notebooks} />
+            </SheetContent>
+          </Sheet>
+
+          <Link href="/" className="mr-6 flex items-center space-x-2 md:hidden">
+            <BookOpen className="h-6 w-6" />
+            <span className="font-bold">Hub</span>
+          </Link>
+
+          <div className="flex flex-1 items-center justify-end space-x-2">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-[#0176d3] to-[#8b5fd6] hover:from-[#015ba8] hover:to-[#7248b8] text-white">
+                <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   New Document
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white border-[#e5e7eb]">
+              <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className="text-[#181818]">Create New Document</DialogTitle>
+                  <DialogTitle>Create New Document</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 pt-4">
                   <Input
                     placeholder="Document title"
                     value={newDocTitle}
                     onChange={(e) => setNewDocTitle(e.target.value)}
-                    className="border-[#e5e7eb] focus:ring-[#0176d3]"
+                    onKeyDown={(e) => e.key === "Enter" && createDocument()}
                   />
-                  <Button onClick={createDocument} className="w-full bg-[#0176d3] hover:bg-[#015ba8] text-white">
+                  <Button onClick={createDocument} className="w-full">
                     Create Document
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
+            <Link href="https://github.com/integratewise/integratewise-hub" target="_blank">
+              <Button variant="ghost" size="icon">
+                <Github className="h-5 w-5" />
+              </Button>
+            </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-73px)] max-w-7xl mx-auto">
-        {/* Document List Sidebar */}
-        <aside className="w-72 border-r border-[#e5e7eb] bg-white overflow-y-auto">
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm text-[#5c5c5c]">
-                {documents.length} documents
-              </span>
-              <span className="text-sm text-[#5c5c5c]">
-                {notebook.progress}% complete
-              </span>
-            </div>
-            <Progress value={notebook.progress} className="h-1 mb-4 bg-[#e5e7eb]" />
+      <div className="container flex-1">
+        <div className="flex-1 md:grid md:grid-cols-[220px_1fr] md:gap-6 lg:grid-cols-[240px_1fr] lg:gap-10">
+          {/* Sidebar */}
+          <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
+            <SidebarNav notebooks={notebooks} />
+          </aside>
 
-            <div className="space-y-2">
-              {documents.map((doc) => (
-                <Card
-                  key={doc.id}
-                  className={`bg-[#fafbfc] border-[#e5e7eb] cursor-pointer hover:shadow-md hover:border-[#0176d3]/30 transition-all ${
-                    selectedDoc?.id === doc.id ? "border-[#0176d3] bg-[#f4f7ff]" : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedDoc(doc);
-                    setEditContent(doc.content || "");
-                    setIsEditing(false);
-                  }}
-                >
-                  <CardContent className="p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-[#0176d3]" />
-                        <span className="text-sm text-[#181818] truncate">{doc.title}</span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-[#5c5c5c] hover:text-[#dc3545] hover:bg-[#dc3545]/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteDocument(doc.id);
+          {/* Main content */}
+          <main className="relative py-6 lg:py-8">
+            {/* Breadcrumb */}
+            <div className="flex items-center space-x-1 text-sm text-muted-foreground mb-4">
+              <Link href="/" className="hover:text-foreground">
+                Home
+              </Link>
+              <ChevronRight className="h-4 w-4" />
+              <span className="text-foreground font-medium">{notebook.name}</span>
+            </div>
+
+            {/* Notebook title */}
+            <div className="space-y-2 mb-6">
+              <h1 className="scroll-m-20 text-3xl font-bold tracking-tight">
+                {notebook.name}
+              </h1>
+              {notebook.description && (
+                <p className="text-lg text-muted-foreground">{notebook.description}</p>
+              )}
+            </div>
+
+            {/* Document list and content */}
+            <div className="grid md:grid-cols-[280px_1fr] gap-6">
+              {/* Document list */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold">Documents</h2>
+                  <span className="text-sm text-muted-foreground">{documents.length}</span>
+                </div>
+
+                <ScrollArea className="h-[calc(100vh-320px)]">
+                  <div className="space-y-2 pr-4">
+                    {documents.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className={`group flex items-center justify-between rounded-md border p-3 cursor-pointer transition-colors ${
+                          selectedDoc?.id === doc.id
+                            ? "border-foreground/20 bg-muted"
+                            : "hover:border-foreground/10 hover:bg-muted/50"
+                        }`}
+                        onClick={() => {
+                          setSelectedDoc(doc);
+                          setEditContent(doc.content || "");
+                          setIsEditing(false);
                         }}
                       >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          <span className="truncate text-sm">{doc.title}</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteDocument(doc.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+
+                    {documents.length === 0 && (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No documents yet</p>
+                        <p className="text-xs">Create your first document</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Document content */}
+              <div className="rounded-lg border bg-card min-h-[500px]">
+                {selectedDoc ? (
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-xl font-semibold">{selectedDoc.title}</h2>
+                      <div className="flex gap-2">
+                        {isEditing ? (
+                          <Button onClick={saveDocument} size="sm">
+                            <Save className="h-4 w-4 mr-2" />
+                            Save
+                          </Button>
+                        ) : (
+                          <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
 
-              {documents.length === 0 && (
-                <div className="text-center py-8 text-[#5c5c5c]">
-                  <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No documents yet</p>
-                  <p className="text-xs">Create your first document</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
-
-        {/* Document Content */}
-        <main className="flex-1 overflow-y-auto bg-white">
-          {selectedDoc ? (
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-[#181818]">{selectedDoc.title}</h2>
-                <div className="flex gap-2">
-                  {isEditing ? (
-                    <Button onClick={saveDocument} className="bg-[#28a745] hover:bg-[#218838] text-white">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => setIsEditing(true)}
-                      className="bg-[#0176d3] hover:bg-[#015ba8] text-white"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {isEditing ? (
-                <Textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="min-h-[500px] border-[#e5e7eb] font-mono text-sm text-[#181818] focus:ring-[#0176d3]"
-                  placeholder="Write your content here..."
-                />
-              ) : (
-                <div className="prose max-w-none">
-                  {selectedDoc.content ? (
-                    <pre className="whitespace-pre-wrap font-sans text-[#181818] bg-[#fafbfc] p-4 rounded-lg border border-[#e5e7eb]">
-                      {selectedDoc.content}
-                    </pre>
-                  ) : (
-                    <p className="text-[#5c5c5c] italic">
-                      No content yet. Click Edit to add content.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full text-[#5c5c5c]">
-              <div className="text-center">
-                <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p>Select a document to view</p>
-                <p className="text-sm">or create a new one</p>
+                    {isEditing ? (
+                      <Textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="min-h-[400px] font-mono text-sm"
+                        placeholder="Write your content here..."
+                      />
+                    ) : (
+                      <div className="prose dark:prose-invert max-w-none">
+                        {selectedDoc.content ? (
+                          <pre className="whitespace-pre-wrap font-sans text-sm">
+                            {selectedDoc.content}
+                          </pre>
+                        ) : (
+                          <p className="text-muted-foreground italic">
+                            No content yet. Click Edit to add content.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    <div className="text-center">
+                      <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>Select a document to view</p>
+                      <p className="text-sm">or create a new one</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          )}
-        </main>
+          </main>
+        </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t py-6 md:py-0">
+        <div className="container flex flex-col items-center justify-between gap-4 md:h-14 md:flex-row">
+          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+            Built by IntegrateWise. The source code is available on GitHub.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
