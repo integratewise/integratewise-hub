@@ -125,7 +125,7 @@ export default function Home() {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="border-zinc-700 text-white hover:bg-zinc-800">
+              <Button size="sm" className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700">
                 <Plus className="h-4 w-4 mr-2" />
                 New Notebook
               </Button>
